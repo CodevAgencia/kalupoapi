@@ -1,0 +1,5 @@
+dependencies:
+- alias: deployment
+  name: deployment
+  version: ~1.0.0
+  repository: https://helm.mefistobaal.tech

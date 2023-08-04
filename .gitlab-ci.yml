@@ -1,0 +1,30 @@
+# Include our gitlabci templates that provide all kinds of helpers
+include:
+  - project: 'devops/gitlab-ci-templates'
+    ref: master
+    file: '/base.yml'
+  - project: 'devops/gitlab-ci-templates'
+    ref: master
+    file: '/global-templates.yml'
+  #- project: 'devops/gitlab-ci-templates'
+  #  ref: master
+  #  file: '/dev-branches-auto.yml'
+  - project: 'devops/gitlab-ci-templates'
+    ref: master
+    file: '/prod-master-manual.yml'
+
+variables:
+  # Where to deploy this in Kubernetes (temporary)
+  HELM_OPTIONS: "--debug --timeout 600 --atomic"
+  K8S_NAMESPACE: "kalupo"
+
+#sonar-test:
+#  extends: .test-sonarqube
+
+build/docker:
+  extends: .build-docker
+
+.prod-k8s-deploy-only:
+  environment:
+    url: https://kalupo.codev-prod.com
+

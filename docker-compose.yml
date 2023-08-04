@@ -1,0 +1,63 @@
+version: '3'
+services:
+
+  # project laravel service
+  app:
+    build:
+      args:
+        user: www
+        uid: 1000
+      context: .
+      dockerfile: Dockerfile
+    container_name: app
+    restart: unless-stopped
+    environment:
+      SERVICE_NAME: app
+      SERVICE_TAGS: dev
+    working_dir: /var/www
+    volumes:
+      - ./:/var/www
+      - ./php/local.ini:/usr/local/etc/php/conf.d/local.ini
+    networks:
+      - app-network
+
+  # Nginx web service to process php request, declared volume to configuration file nginx ./nginx/conf.d/app.conf, exposes port 80 to receive requests from the web browser
+  webserver:
+    image: nginx:alpine
+    container_name: webserver
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./:/var/www
+      - ./nginx/conf.d/:/etc/nginx/conf.d/
+    networks:
+      - app-network
+
+  # Postgres service to persist register in database. exposes port 5432 to receive requests for database client connections, declare volume to persist database in host
+  db:
+    image: postgres:12.8-alpine
+    container_name: db
+    restart: always
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_HOST_AUTH_METHOD: trust
+      PGDATA: /var/lib/postgresql/data
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+# Docker Networks: Docker networks allow containers to communicate with each other and with the outside world in a controlled and isolated manner
+networks:
+  app-network:
+    driver: bridge
+
+# Volumes: Docker volumes provide a way to persist and share data between containers and the host machine.
+volumes:
+  pgdata:
+    driver: local
